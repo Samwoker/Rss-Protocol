@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-fixed": "#82f3ff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "on-primary-fixed": "#3a0031",
+                        "secondary-container": "#75f2fe",
+                        "secondary": "#006970",
+                        "on-secondary-container": "#006d75",
+                        "primary-container": "#b6509e",
+                        "inverse-on-surface": "#eaf1ff",
+                        "tertiary-fixed": "#e2dfff",
+                        "surface-variant": "#d3e4fe",
+                        "on-primary": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "tertiary-container": "#6c6ad0",
+                        "on-tertiary-fixed": "#0e006a",
+                        "primary": "#983784",
+                        "outline-variant": "#d7c0cc",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#004f55",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#213145",
+                        "surface-container-highest": "#d3e4fe",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-container": "#ffffff",
+                        "on-surface-variant": "#52424c",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "on-surface": "#0b1c30",
+                        "surface-container-low": "#eff4ff",
+                        "primary-fixed-dim": "#ffade5",
+                        "on-background": "#0b1c30",
+                        "surface-tint": "#993784",
+                        "tertiary-fixed-dim": "#c3c0ff",
+                        "secondary-fixed-dim": "#57d8e4",
+                        "on-tertiary-fixed-variant": "#3c389c",
+                        "on-tertiary-container": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#7c1d6b",
+                        "outline": "#84727d",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#5351b5",
+                        "primary-fixed": "#ffd7ef",
+                        "inverse-primary": "#ffade5",
+                        "background": "#f8f9ff",
+                        "on-secondary-fixed": "#002022"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .signature-gradient {
+            background: linear-gradient(135deg, #983784 0%, #006970 100%);
+        }
+
+        .glass-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .ghost-border {
+            outline: 1px solid rgba(152, 55, 132, 0.15);
+        }
+    </style>
+</head>
+
+<body class="bg-surface font-body text-on-surface antialiased overflow-hidden">
+    <!-- Mock Background Content (The Gallery/Atelier Feel) -->
+    <div class="fixed inset-0 z-0 flex items-center justify-center pointer-events-none opacity-40">
+        <div class="w-full max-w-screen-xl grid grid-cols-12 gap-8 px-12">
+            <div class="col-span-8 space-y-12">
+                <h1 class="text-7xl font-headline font-extrabold tracking-tight text-on-surface/10">
+                    Financial<br />Atelier</h1>
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="h-64 bg-surface-container-low rounded-xl"></div>
+                    <div class="h-64 bg-surface-container-low rounded-xl"></div>
+                </div>
+            </div>
+            <div class="col-span-4 h-full bg-surface-container-high rounded-xl"></div>
+        </div>
+    </div>
+    <!-- Modal Backdrop -->
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-on-surface/5 backdrop-blur-md">
+        <!-- Wallet Connect Modal -->
+        <div
+            class="relative w-full max-w-lg bg-surface-container-lowest shadow-[0_20px_40px_rgba(11,28,48,0.06)] rounded-3xl p-8 mx-4">
+            <!-- Close Button -->
+            <button
+                class="absolute top-6 right-6 p-2 rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <!-- Header -->
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-headline font-bold text-on-surface tracking-tight mb-2">Connect Wallet</h2>
+                <p class="text-on-surface-variant/70 text-sm">Select your preferred entry into the atelier.</p>
+            </div>
+            <!-- Network Selector Dropdown -->
+            <div class="mb-8 group">
+                <label
+                    class="block text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-2 ml-1">Network
+                    Protocol</label>
+                <div class="relative">
+                    <button
+                        class="w-full flex items-center justify-between px-5 py-4 bg-surface-container-low rounded-xl hover:bg-surface-container transition-all">
+                        <div class="flex items-center gap-3">
+                            <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                            <span class="font-mono text-sm font-medium">Mainnet</span>
+                        </div>
+                        <span class="material-symbols-outlined text-on-surface-variant">expand_more</span>
+                    </button>
+                    <!-- Simulated Dropdown State -->
+                    <div
+                        class="hidden absolute top-full left-0 right-0 mt-2 bg-surface-container-lowest rounded-xl shadow-lg z-10 p-2 border border-outline-variant/10">
+                        <div class="p-3 font-mono text-sm hover:bg-surface-container-low rounded-lg cursor-pointer">
+                            Sepolia</div>
+                        <div class="p-3 font-mono text-sm hover:bg-surface-container-low rounded-lg cursor-pointer">
+                            Polygon</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Wallet Options Stack -->
+            <div class="space-y-4 mb-10">
+                <!-- MetaMask -->
+                <div
+                    class="group relative flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:border-primary/30 transition-all cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary"
+                                style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-on-surface">MetaMask</p>
+                            <p class="text-xs text-on-surface-variant">Browser Extension</p>
+                        </div>
+                    </div>
+                    <button
+                        class="signature-gradient text-white text-xs font-bold px-5 py-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0 translate-x-4">
+                        Connect
+                    </button>
+                </div>
+                <!-- WalletConnect -->
+                <div
+                    class="group relative flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:border-primary/30 transition-all cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center">
+                            <span class="material-symbols-outlined text-secondary"
+                                style="font-variation-settings: 'FILL' 1;">qr_code_scanner</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-on-surface">WalletConnect</p>
+                            <p class="text-xs text-on-surface-variant">Mobile Scanning</p>
+                        </div>
+                    </div>
+                    <!-- Loading State Mock -->
+                    <div class="flex items-center gap-2 px-5 py-2.5">
+                        <div class="w-4 h-4 border-2 border-primary/20 border-t-primary rounded-full animate-spin">
+                        </div>
+                    </div>
+                </div>
+                <!-- Coinbase Wallet -->
+                <div
+                    class="group relative flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:border-primary/30 transition-all cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center">
+                            <span class="material-symbols-outlined text-on-surface"
+                                style="font-variation-settings: 'FILL' 1;">token</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-on-surface">Coinbase Wallet</p>
+                            <p class="text-xs text-on-surface-variant">Smart Contract Wallet</p>
+                        </div>
+                    </div>
+                    <button
+                        class="signature-gradient text-white text-xs font-bold px-5 py-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0 translate-x-4">
+                        Connect
+                    </button>
+                </div>
+            </div>
+            <!-- Terms & Footer -->
+            <div class="text-center px-4">
+                <p class="text-[11px] text-on-surface-variant/60 leading-relaxed uppercase tracking-widest">
+                    By connecting a wallet, you agree to the
+                    <a class="text-primary hover:underline underline-offset-4 decoration-primary/30" href="#">Terms of
+                        Service</a>
+                    and acknowledge our
+                    <a class="text-primary hover:underline underline-offset-4 decoration-primary/30" href="#">Privacy
+                        Policy</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- Nav Anchors (Simplified for Layout) -->
+    <header class="fixed top-0 w-full h-20 px-8 flex justify-between items-center z-50 glass-blur">
+        <div class="text-2xl font-bold tracking-tighter text-on-surface">SalaryStreamer</div>
+        <div class="flex gap-8 text-sm font-medium">
+            <span class="text-primary border-b-2 border-primary">Dashboard</span>
+            <span class="text-on-surface-variant hover:text-on-surface transition-colors">Explorer</span>
+            <span class="text-on-surface-variant hover:text-on-surface transition-colors">Deploy</span>
+        </div>
+        <button class="signature-gradient text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg">Connect
+            Wallet</button>
+    </header>
+</body>
+
+</html>

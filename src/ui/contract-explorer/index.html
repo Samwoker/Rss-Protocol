@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>SalaryStreamer | Contract Explorer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-fixed": "#82f3ff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "on-primary-fixed": "#3a0031",
+                        "secondary-container": "#75f2fe",
+                        "secondary": "#006970",
+                        "on-secondary-container": "#006d75",
+                        "primary-container": "#b6509e",
+                        "inverse-on-surface": "#eaf1ff",
+                        "tertiary-fixed": "#e2dfff",
+                        "surface-variant": "#d3e4fe",
+                        "on-primary": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "tertiary-container": "#6c6ad0",
+                        "on-tertiary-fixed": "#0e006a",
+                        "primary": "#983784",
+                        "outline-variant": "#d7c0cc",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#004f55",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#213145",
+                        "surface-container-highest": "#d3e4fe",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-container": "#ffffff",
+                        "on-surface-variant": "#52424c",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "on-surface": "#0b1c30",
+                        "surface-container-low": "#eff4ff",
+                        "primary-fixed-dim": "#ffade5",
+                        "on-background": "#0b1c30",
+                        "surface-tint": "#993784",
+                        "tertiary-fixed-dim": "#c3c0ff",
+                        "secondary-fixed-dim": "#57d8e4",
+                        "on-tertiary-fixed-variant": "#3c389c",
+                        "on-tertiary-container": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#7c1d6b",
+                        "outline": "#84727d",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#5351b5",
+                        "primary-fixed": "#ffd7ef",
+                        "inverse-primary": "#ffade5",
+                        "background": "#f8f9ff",
+                        "on-secondary-fixed": "#002022"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .signature-soul-gradient {
+            background: linear-gradient(135deg, #983784 0%, #006970 100%);
+        }
+
+        .ghost-border {
+            outline: 1px solid rgba(152, 55, 132, 0.15);
+        }
+    </style>
+</head>
+
+<body class="bg-surface text-on-surface font-body selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+    <!-- Top Navigation Bar -->
+    <nav
+        class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(11,28,48,0.06)]">
+        <div class="flex justify-between items-center px-8 h-20 w-full max-w-screen-2xl mx-auto">
+            <div class="flex items-center gap-8">
+                <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">SalaryStreamer</span>
+                <div class="hidden md:flex gap-6 font-['Inter'] font-medium text-sm antialiased">
+                    <a class="text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all duration-300 hover:opacity-80"
+                        href="#">Dashboard</a>
+                    <a class="text-fuchsia-700 dark:text-fuchsia-400 font-bold border-b-2 border-fuchsia-600 transition-all duration-300 hover:opacity-80"
+                        href="#">Explorer</a>
+                    <a class="text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all duration-300 hover:opacity-80"
+                        href="#">Deploy</a>
+                    <a class="text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all duration-300 hover:opacity-80"
+                        href="#">Docs</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button
+                    class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 bg-slate-100/50 dark:bg-slate-800/50 transition-all duration-300 active:scale-95">Ethereum</button>
+                <button
+                    class="signature-soul-gradient px-6 py-2.5 rounded-full text-white text-sm font-bold shadow-lg transition-transform active:scale-95">Connect
+                    Wallet</button>
+            </div>
+        </div>
+    </nav>
+    <main class="pt-32 pb-24 px-8 max-w-screen-2xl mx-auto min-h-screen">
+        <!-- Hero Search Section -->
+        <header class="mb-16">
+            <div class="max-w-3xl">
+                <h1 class="text-5xl font-bold font-headline tracking-tight mb-6 text-on-surface">Contract Explorer</h1>
+                <p class="text-lg text-on-surface-variant mb-10 max-w-xl">Verify real-time payroll streams, employee
+                    contracts, and immutable transaction ledgers across the ecosystem.</p>
+                <div class="relative group">
+                    <div
+                        class="absolute inset-y-0 left-5 flex items-center pointer-events-none text-on-surface-variant">
+                        <span class="material-symbols-outlined" data-icon="search">search</span>
+                    </div>
+                    <input
+                        class="w-full h-16 pl-14 pr-6 rounded-2xl bg-surface-container-low border-none focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all text-lg placeholder:text-outline shadow-sm"
+                        placeholder="Search by contract address or wallet" type="text" />
+                </div>
+            </div>
+        </header>
+        <!-- Filter Navigation & Metrics -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
+            <div class="flex p-1.5 bg-surface-container-low rounded-xl w-fit">
+                <button class="px-6 py-2 text-sm font-semibold rounded-lg bg-white shadow-sm text-primary">All</button>
+                <button
+                    class="px-6 py-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Active</button>
+                <button
+                    class="px-6 py-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Completed</button>
+                <button
+                    class="px-6 py-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Cancelled</button>
+            </div>
+            <div class="flex gap-8 items-center">
+                <div class="text-right">
+                    <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Total Volume
+                    </p>
+                    <p class="font-mono text-xl font-bold text-secondary">$1,482,904.32</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Active
+                        Streams</p>
+                    <p class="font-mono text-xl font-bold text-primary">842</p>
+                </div>
+            </div>
+        </div>
+        <!-- Contract Results Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Card 1: Active -->
+            <div
+                class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] group hover:translate-y-[-4px] transition-transform duration-300">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-secondary-container/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-secondary" data-icon="waves">waves</span>
+                    </div>
+                    <span
+                        class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Active</span>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Contract
+                        Hash</h3>
+                    <code
+                        class="font-mono text-sm block truncate text-on-surface bg-surface-container-low px-3 py-2 rounded-lg">0x71C765...69721</code>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Employer</h4>
+                        <p class="text-sm font-medium">Aave Labs</p>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Worker
+                        </h4>
+                        <p class="text-sm font-medium truncate">0x9a2...1b4</p>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-surface-container-low flex justify-between items-end">
+                    <div>
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Monthly
+                            Salary</p>
+                        <p class="font-mono text-2xl font-bold text-on-surface">5,250.00 <span
+                                class="text-xs font-normal text-on-surface-variant uppercase">USDC</span></p>
+                    </div>
+                    <button
+                        class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Card 2: Completed -->
+            <div
+                class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] group hover:translate-y-[-4px] transition-transform duration-300">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-primary-container/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary"
+                            data-icon="assignment_turned_in">assignment_turned_in</span>
+                    </div>
+                    <span
+                        class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-wider rounded-full">Completed</span>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Contract
+                        Hash</h3>
+                    <code
+                        class="font-mono text-sm block truncate text-on-surface bg-surface-container-low px-3 py-2 rounded-lg">0x4a182b...e4f09</code>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Employer</h4>
+                        <p class="text-sm font-medium">Uniswap Fnd.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Worker
+                        </h4>
+                        <p class="text-sm font-medium truncate">0x1f2...9c8</p>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-surface-container-low flex justify-between items-end">
+                    <div>
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Total
+                            Paid Out</p>
+                        <p class="font-mono text-2xl font-bold text-on-surface">12,000.00 <span
+                                class="text-xs font-normal text-on-surface-variant uppercase">DAI</span></p>
+                    </div>
+                    <button
+                        class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Card 3: Active -->
+            <div
+                class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] group hover:translate-y-[-4px] transition-transform duration-300">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-secondary-container/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-secondary" data-icon="bolt">bolt</span>
+                    </div>
+                    <span
+                        class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Active</span>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Contract
+                        Hash</h3>
+                    <code
+                        class="font-mono text-sm block truncate text-on-surface bg-surface-container-low px-3 py-2 rounded-lg">0x992b11...33aa1</code>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Employer</h4>
+                        <p class="text-sm font-medium">Chainlink Labs</p>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Worker
+                        </h4>
+                        <p class="text-sm font-medium truncate">0x77e...a21</p>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-surface-container-low flex justify-between items-end">
+                    <div>
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Monthly
+                            Salary</p>
+                        <p class="font-mono text-2xl font-bold text-on-surface">8,500.00 <span
+                                class="text-xs font-normal text-on-surface-variant uppercase">LINK</span></p>
+                    </div>
+                    <button
+                        class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Card 4: Cancelled -->
+            <div
+                class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] group hover:translate-y-[-4px] transition-transform duration-300">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-error-container/50 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-error" data-icon="cancel">cancel</span>
+                    </div>
+                    <span
+                        class="px-3 py-1 bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider rounded-full">Cancelled</span>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Contract
+                        Hash</h3>
+                    <code
+                        class="font-mono text-sm block truncate text-on-surface bg-surface-container-low px-3 py-2 rounded-lg">0x1102e3...b1b22</code>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Employer</h4>
+                        <p class="text-sm font-medium text-outline">OpenSea</p>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Worker
+                        </h4>
+                        <p class="text-sm font-medium truncate text-outline">0x883...22c</p>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-surface-container-low flex justify-between items-end opacity-60">
+                    <div>
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Final
+                            Settlement</p>
+                        <p class="font-mono text-2xl font-bold text-on-surface">1,400.00 <span
+                                class="text-xs font-normal text-on-surface-variant uppercase">WETH</span></p>
+                    </div>
+                    <button
+                        class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant">
+                        <span class="material-symbols-outlined text-sm" data-icon="info">info</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Card 5: Active -->
+            <div
+                class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] group hover:translate-y-[-4px] transition-transform duration-300">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-secondary-container/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-secondary" data-icon="monitoring">monitoring</span>
+                    </div>
+                    <span
+                        class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Active</span>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Contract
+                        Hash</h3>
+                    <code
+                        class="font-mono text-sm block truncate text-on-surface bg-surface-container-low px-3 py-2 rounded-lg">0xb0442a...ff001</code>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Employer</h4>
+                        <p class="text-sm font-medium">Paradigm</p>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Worker
+                        </h4>
+                        <p class="text-sm font-medium truncate">0x221...e00</p>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-surface-container-low flex justify-between items-end">
+                    <div>
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Monthly
+                            Salary</p>
+                        <p class="font-mono text-2xl font-bold text-on-surface">15,000.00 <span
+                                class="text-xs font-normal text-on-surface-variant uppercase">USDC</span></p>
+                    </div>
+                    <button
+                        class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Card 6: Active -->
+            <div
+                class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] group hover:translate-y-[-4px] transition-transform duration-300">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-secondary-container/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-secondary" data-icon="stream">stream</span>
+                    </div>
+                    <span
+                        class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Active</span>
+                </div>
+                <div class="mb-6">
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Contract
+                        Hash</h3>
+                    <code
+                        class="font-mono text-sm block truncate text-on-surface bg-surface-container-low px-3 py-2 rounded-lg">0xc8e011...db921</code>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Employer</h4>
+                        <p class="text-sm font-medium">Lido Finance</p>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Worker
+                        </h4>
+                        <p class="text-sm font-medium truncate">0x334...90d</p>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-surface-container-low flex justify-between items-end">
+                    <div>
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Monthly
+                            Salary</p>
+                        <p class="font-mono text-2xl font-bold text-on-surface">4,200.00 <span
+                                class="text-xs font-normal text-on-surface-variant uppercase">stETH</span></p>
+                    </div>
+                    <button
+                        class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Pagination Section -->
+        <div class="mt-20 flex flex-col items-center gap-8">
+            <div class="flex items-center gap-2">
+                <button
+                    class="w-10 h-10 rounded-lg flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors">
+                    <span class="material-symbols-outlined text-lg" data-icon="chevron_left">chevron_left</span>
+                </button>
+                <button
+                    class="w-10 h-10 rounded-lg flex items-center justify-center font-mono font-bold bg-primary text-white">1</button>
+                <button
+                    class="w-10 h-10 rounded-lg flex items-center justify-center font-mono font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors">2</button>
+                <button
+                    class="w-10 h-10 rounded-lg flex items-center justify-center font-mono font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors">3</button>
+                <button
+                    class="w-10 h-10 rounded-lg flex items-center justify-center font-mono font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors">...</button>
+                <button
+                    class="w-10 h-10 rounded-lg flex items-center justify-center font-mono font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors">12</button>
+                <button
+                    class="w-10 h-10 rounded-lg flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors">
+                    <span class="material-symbols-outlined text-lg" data-icon="chevron_right">chevron_right</span>
+                </button>
+            </div>
+            <button
+                class="px-8 py-4 bg-surface-container-low rounded-full font-bold text-sm text-primary hover:bg-surface-container-high transition-colors tracking-wide uppercase">
+                Load more contracts
+            </button>
+        </div>
+    </main>
+    <!-- Sidebar (Suppressed based on Task Context, but keeping TopNav as primary) -->
+    <!-- Footer -->
+    <footer class="w-full py-12 border-t border-slate-100 dark:border-slate-900 bg-white dark:bg-slate-950">
+        <div class="flex flex-col md:flex-row justify-between items-center px-12 max-w-screen-2xl mx-auto">
+            <div class="mb-8 md:mb-0">
+                <p class="font-['JetBrains_Mono'] text-sm text-slate-400 mb-2">SalaryStreamer Engine v2.0.4</p>
+                <p class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500">© 2024
+                    TrustlessSalaryStreamer</p>
+            </div>
+            <div class="flex gap-10">
+                <a class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500 hover:text-fuchsia-600 hover:underline decoration-fuchsia-500 underline-offset-4 transition-all"
+                    href="#">Terms</a>
+                <a class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500 hover:text-fuchsia-600 hover:underline decoration-fuchsia-500 underline-offset-4 transition-all"
+                    href="#">Privacy</a>
+                <a class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500 hover:text-fuchsia-600 hover:underline decoration-fuchsia-500 underline-offset-4 transition-all"
+                    href="#">Discord</a>
+                <a class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500 hover:text-fuchsia-600 hover:underline decoration-fuchsia-500 underline-offset-4 transition-all"
+                    href="#">Github</a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

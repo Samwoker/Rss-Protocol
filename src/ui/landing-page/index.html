@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "#82f3ff",
+              "surface-bright": "#f8f9ff",
+              "surface-dim": "#cbdbf5",
+              "on-primary-fixed": "#3a0031",
+              "secondary-container": "#75f2fe",
+              "secondary": "#006970",
+              "on-secondary-container": "#006d75",
+              "primary-container": "#b6509e",
+              "inverse-on-surface": "#eaf1ff",
+              "tertiary-fixed": "#e2dfff",
+              "surface-variant": "#d3e4fe",
+              "on-primary": "#ffffff",
+              "surface": "#f8f9ff",
+              "tertiary-container": "#6c6ad0",
+              "on-tertiary-fixed": "#0e006a",
+              "primary": "#983784",
+              "outline-variant": "#d7c0cc",
+              "on-error-container": "#93000a",
+              "on-secondary-fixed-variant": "#004f55",
+              "surface-container-lowest": "#ffffff",
+              "inverse-surface": "#213145",
+              "surface-container-highest": "#d3e4fe",
+              "error": "#ba1a1a",
+              "surface-container-high": "#dce9ff",
+              "on-primary-container": "#ffffff",
+              "on-surface-variant": "#52424c",
+              "on-error": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "surface-container": "#e5eeff",
+              "on-surface": "#0b1c30",
+              "surface-container-low": "#eff4ff",
+              "primary-fixed-dim": "#ffade5",
+              "on-background": "#0b1c30",
+              "surface-tint": "#993784",
+              "tertiary-fixed-dim": "#c3c0ff",
+              "secondary-fixed-dim": "#57d8e4",
+              "on-tertiary-fixed-variant": "#3c389c",
+              "on-tertiary-container": "#ffffff",
+              "error-container": "#ffdad6",
+              "on-primary-fixed-variant": "#7c1d6b",
+              "outline": "#84727d",
+              "on-secondary": "#ffffff",
+              "tertiary": "#5351b5",
+              "primary-fixed": "#ffd7ef",
+              "inverse-primary": "#ffade5",
+              "background": "#f8f9ff",
+              "on-secondary-fixed": "#002022"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"],
+              "mono": ["JetBrains Mono"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .soul-gradient {
+            background: linear-gradient(135deg, #983784 0%, #006970 100%);
+        }
+        .ghost-border {
+            outline: 1px solid rgba(132, 114, 125, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(11,28,48,0.06)]">
+<div class="flex justify-between items-center px-8 h-20 w-full max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-12">
+<span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">SalaryStreamer</span>
+<div class="hidden md:flex items-center gap-8 font-['Inter'] font-medium text-sm antialiased">
+<a class="text-fuchsia-700 dark:text-fuchsia-400 font-bold border-b-2 border-fuchsia-600 transition-all duration-300 hover:opacity-80" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all duration-300 hover:opacity-80" href="#">Explorer</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all duration-300 hover:opacity-80" href="#">Deploy</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all duration-300 hover:opacity-80" href="#">Docs</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-5 py-2.5 rounded-full ghost-border text-sm font-medium hover:bg-surface-container-low transition-colors">Ethereum</button>
+<button class="px-6 py-2.5 rounded-full soul-gradient text-white text-sm font-semibold active:scale-95 transition-transform">Connect Wallet</button>
+</div>
+</div>
+</nav>
+<main class="pt-32 pb-24 px-6 md:px-12 max-w-screen-2xl mx-auto">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center mb-32">
+<div class="lg:col-span-7">
+<h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-on-background mb-6 leading-[1.1]">
+                    Trustless <br/>
+<span class="text-transparent bg-clip-text soul-gradient">Salary Streaming</span>
+</h1>
+<p class="text-xl text-on-surface-variant max-w-xl mb-10 leading-relaxed">
+                    Automate payroll with smart contracts. Secure, immutable, and continuous payment flows for the modern decentralized workforce.
+                </p>
+<div class="flex flex-wrap gap-4">
+<button class="px-8 py-4 rounded-full soul-gradient text-white font-bold shadow-lg hover:shadow-primary/20 transition-all duration-300 active:scale-95">
+                        Deploy Contract
+                    </button>
+<button class="px-8 py-4 rounded-full bg-surface-container-highest/50 border border-outline/20 font-semibold hover:bg-surface-container-high transition-colors">
+                        Connect Wallet
+                    </button>
+<button class="px-8 py-4 rounded-full text-primary font-semibold hover:underline decoration-fuchsia-500 underline-offset-8 transition-all">
+                        View Explorer
+                    </button>
+</div>
+</div>
+<div class="lg:col-span-5 relative">
+<div class="absolute -z-10 top-0 left-0 w-full h-full soul-gradient opacity-10 blur-[100px] rounded-full"></div>
+<div class="bg-surface-container-lowest rounded-3xl p-2 shadow-[0_20px_40px_rgba(11,28,48,0.06)] ghost-border overflow-hidden">
+<img class="w-full h-auto rounded-2xl object-cover aspect-[4/5]" data-alt="high-tech 3d abstract visualization of digital liquid flow and crystal structures in shades of fuchsia and teal against a clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0-xx2Ii9eeflnHa8TxngsmHyR9CDzPdq-aQ6gsxrguNnCbKLJDzdfokrj7qOSxjSNE4WOZG-EriAsRinlAQTLJ6Wp6YeUAeGHgEFroFzlgRq2l0Gd41pPVtUS3fhiUD_y_OmL-2ecZIXZQxhOtezOT_BIQJXyShPTIMZSYkJzetNCq2-9lnkhBMPAgZcMdxj5OghBAvp_VUljIkfrHAd_s9_sBYAgvs6C0RlXTtSDzkCs7hYpsv4basLiwBB3IWTgEGJrp01tNCM"/>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-32">
+<div class="bg-surface-container-lowest p-10 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] flex flex-col items-center text-center transition-transform hover:-translate-y-1">
+<span class="material-symbols-outlined text-primary mb-4 text-3xl" data-icon="deployed_code">deployed_code</span>
+<div class="font-mono text-4xl font-bold text-on-surface mb-2">12,842</div>
+<div class="text-sm font-medium uppercase tracking-widest text-on-surface-variant">Total Contracts Deployed</div>
+</div>
+<div class="bg-surface-container-lowest p-10 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] flex flex-col items-center text-center transition-transform hover:-translate-y-1">
+<span class="material-symbols-outlined text-secondary mb-4 text-3xl" data-icon="waves">waves</span>
+<div class="font-mono text-4xl font-bold text-on-surface mb-2">$84.2M</div>
+<div class="text-sm font-medium uppercase tracking-widest text-on-surface-variant">Total Salary Streamed</div>
+</div>
+<div class="bg-surface-container-lowest p-10 rounded-2xl shadow-[0_4px_12px_rgba(11,28,48,0.08)] flex flex-col items-center text-center transition-transform hover:-translate-y-1">
+<span class="material-symbols-outlined text-tertiary mb-4 text-3xl" data-icon="group">group</span>
+<div class="font-mono text-4xl font-bold text-on-surface mb-2">4,105</div>
+<div class="text-sm font-medium uppercase tracking-widest text-on-surface-variant">Active Workers</div>
+</div>
+</section>
+<!-- Features Bento Grid -->
+<section class="mb-32">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+<div>
+<span class="text-primary font-bold tracking-[0.2em] uppercase text-xs mb-4 block">Engineered for Trust</span>
+<h2 class="text-4xl font-bold text-on-surface">Protocol Features</h2>
+</div>
+<p class="text-on-surface-variant max-w-md text-right">Every stream is governed by immutable code, ensuring payment certainty for contributors and operational efficiency for DAOs.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="lock_open">lock_open</span>
+</div>
+<h3 class="text-xl font-bold mb-3">No middleman</h3>
+<p class="text-on-surface-variant leading-relaxed">Direct peer-to-contract relationships. Remove administrative friction and centralized points of failure in your payroll cycle.</p>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="schedule">schedule</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Time-locked payments</h3>
+<p class="text-on-surface-variant leading-relaxed">Configurable vesting schedules and linear streaming. Funds are released second-by-second directly to worker wallets.</p>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="undo">undo</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Clawback protection</h3>
+<p class="text-on-surface-variant leading-relaxed">Programmable security for employers. Recover unvested funds if a contract is terminated prematurely by either party.</p>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Auto-payments</h3>
+<p class="text-on-surface-variant leading-relaxed">Set it and forget it. Funds are automatically managed by smart contracts, eliminating manual wire transfers and monthly approvals.</p>
+</div>
+<!-- Card 5 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="hub">hub</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Multi-chain</h3>
+<p class="text-on-surface-variant leading-relaxed">Deploy on Ethereum, Polygon, Arbitrum, or Base. Optimize for gas costs and ecosystem compatibility across the L2 landscape.</p>
+</div>
+<!-- Card 6 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300">
+<div class="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Audit Complete</h3>
+<p class="text-on-surface-variant leading-relaxed">Rigorous security audits by top-tier firms. Battle-tested code ensuring your payroll liquidity remains secure and accessible.</p>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="relative rounded-[2rem] overflow-hidden p-12 md:p-20 text-center">
+<div class="absolute inset-0 soul-gradient opacity-[0.03]"></div>
+<div class="relative z-10 max-w-3xl mx-auto">
+<h2 class="text-4xl font-bold mb-6">Ready to Stream Your Payroll?</h2>
+<p class="text-lg text-on-surface-variant mb-10">Join thousands of decentralized organizations using SalaryStreamer to power the future of work.</p>
+<div class="flex flex-col sm:flex-row justify-center gap-4">
+<button class="px-10 py-5 rounded-full soul-gradient text-white text-lg font-bold shadow-xl active:scale-95 transition-transform">Get Started Now</button>
+<button class="px-10 py-5 rounded-full bg-white dark:bg-slate-800 text-on-surface text-lg font-semibold border border-outline/10 hover:bg-surface-container-low transition-colors">Documentation</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 border-t border-slate-100 dark:border-slate-900 bg-white dark:bg-slate-950">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 max-w-screen-2xl mx-auto gap-8">
+<div class="flex flex-col gap-2">
+<span class="font-['JetBrains_Mono'] text-sm text-slate-400">SalaryStreamer_v2.0.4</span>
+<span class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500">© 2024 TrustlessSalaryStreamer</span>
+</div>
+<div class="flex gap-10">
+<a class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500 hover:text-fuchsia-600 hover:underline decoration-fuchsia-500 underline-offset-4 transition-all" href="#">Terms</a>
+<a class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500 hover:text-fuchsia-600 hover:underline decoration-fuchsia-500 underline-offset-4 transition-all" href="#">Privacy</a>
+<a class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500 hover:text-fuchsia-600 hover:underline decoration-fuchsia-500 underline-offset-4 transition-all" href="#">Discord</a>
+<a class="font-['Inter'] text-xs uppercase tracking-widest text-slate-500 hover:text-fuchsia-600 hover:underline decoration-fuchsia-500 underline-offset-4 transition-all" href="#">Github</a>
+</div>
+</div>
+</footer>
+</body></html>
