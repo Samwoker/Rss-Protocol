@@ -20,36 +20,36 @@ export function Navbar({ currentView, onNavigate, onConnectWallet }: NavbarProps
     <nav className="navbar">
       <div className="navbar__inner">
         <div
-          className="navbar__brand"
-          style={{ cursor: 'pointer' }}
+          className="navbar__brand cursor-pointer"
           onClick={() => onNavigate("landing")}
         >
           SalaryStreamer
         </div>
 
         <div className="navbar__links">
-          {NAV_LINKS.map((link) => (
-            <button
-              key={link.label}
-              onClick={() => onNavigate(link.view)}
-              className={`navbar__link 
-                ${currentView === link.view ? 'navbar__link--active' : ''}
-                ${currentView === "landing" && link.label === "Dashboard" ? 'navbar__link--active' : ''}
-              `}
-            >
-              {link.label}
-            </button>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const isActive = currentView === link.view || (currentView === "landing" && link.label === "Dashboard")
+            return (
+              <button
+                key={link.label}
+                onClick={() => onNavigate(link.view)}
+                className={`navbar__link ${isActive ? "navbar__link--active" : ""}`}
+              >
+                {link.label}
+                {isActive && <div className="navbar__link-indicator" />}
+              </button>
+            )
+          })}
         </div>
 
         <div className="navbar__actions">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" className="btn-sm border-slate-200">
             Ethereum
           </Button>
           <Button
-            variant="primary"
-            size="sm"
             onClick={onConnectWallet}
+            className="btn-primary"
+            style={{ padding: '12px 32px', borderRadius: '9999px' }}
           >
             Connect Wallet
           </Button>

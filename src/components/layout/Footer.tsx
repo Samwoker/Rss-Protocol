@@ -9,15 +9,8 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="footer__inner">
-        <div className="footer__meta">
-          <span className="footer__version">
-            SalaryStreamer_v2.0.4
-          </span>
-          <span className="footer__copy">
-            © 2024 TrustlessSalaryStreamer
-          </span>
-        </div>
-
+        <span>© 2024 TrustlessSalaryStreamer</span>
+        
         <div className="footer__links">
           {FOOTER_LINKS.map((link) => (
             <a
