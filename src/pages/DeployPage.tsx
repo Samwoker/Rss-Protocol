@@ -6,7 +6,7 @@ interface DeployPageProps {
   onConnectWallet: () => void
 }
 
-export function DeployPage({ onConnectWallet }: DeployPageProps) {
+export function DeployPage({ onConnectWallet: _onConnectWallet }: DeployPageProps) {
   // Form State
   const [employer, setEmployer] = useState("")
   const [worker, setWorker] = useState("")

@@ -12,6 +12,7 @@ import { ExplorerPage } from "@/pages/ExplorerPage"
 import { ContractDashboard } from "@/pages/ContractDashboard"
 import { WorkerDashboard } from "@/pages/WorkerDashboard"
 import { ConnectWalletModal } from "@/components/modals/ConnectWalletModal"
+import { Web3Provider } from "./providers/Web3Provider"
 
 export type View = "landing" | "deploy" | "explorer" | "dashboard" | "worker-dashboard"
 
@@ -41,7 +42,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <Web3Provider>
       <Navbar
         currentView={view}
         onNavigate={navigate}
@@ -76,6 +77,6 @@ export default function App() {
         isOpen={isConnectModalOpen}
         onClose={() => setIsConnectModalOpen(false)}
       />
-    </>
+    </Web3Provider>
   )
 }

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useAccount } from "wagmi"
 
 interface FundingHistory {
   id: string
@@ -17,6 +18,10 @@ const FUNDING_HISTORY: FundingHistory[] = [
 export function ContractDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [depositAmount, setDepositAmount] = useState("")
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const { address, isConnected } = useAccount()
+
+  const truncatedAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Disconnected"
 
   const navItems = [
     { label: "Dashboard", icon: "dashboard" },
@@ -25,35 +30,55 @@ export function ContractDashboard() {
     { label: "Settings", icon: "settings" }
   ]
 
+  const handleNavClick = (tab: string) => {
+    setActiveTab(tab)
+    setIsSidebarOpen(false)
+  }
+
   return (
     <div className="dashboard-layout">
       {/* Sidebar Navigation - Shared with Worker Dashboard */}
-      <aside className="dashboard-sidebar">
-        <div className="connected-card">
-          <div className="connected-card__icon">
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
-          </div>
-          <div>
-            <p className="connected-card__label">Connected</p>
-            <p className="connected-card__address">0x...1234</p>
-          </div>
-        </div>
+      <aside className={`dashboard-sidebar ${isSidebarOpen ? "dashboard-sidebar--open" : ""}`}>
+        <button
+          type="button"
+          className="dashboard-sidebar__toggle"
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
+          aria-expanded={isSidebarOpen}
+          aria-controls="employer-sidebar-content"
+        >
+          <span className="material-symbols-outlined">{isSidebarOpen ? "close" : "menu"}</span>
+          <span>{isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}</span>
+        </button>
 
-        <nav className="sidebar-nav">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.label.toLowerCase()
-            return (
-              <button
-                key={item.label}
-                onClick={() => setActiveTab(item.label.toLowerCase())}
-                className={`sidebar-nav__item ${isActive ? "sidebar-nav__item--active" : ""}`}
-              >
-                <span className="material-symbols-outlined">{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            )
-          })}
-        </nav>
+        <div id="employer-sidebar-content" className="dashboard-sidebar__content">
+          <div className="connected-card">
+            <div className="connected-card__icon" style={{ color: isConnected ? 'var(--secondary)' : 'var(--on-surface-variant)' }}>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: isConnected ? "'FILL' 1" : "'FILL' 0" }}>
+                {isConnected ? 'account_balance_wallet' : 'no_accounts'}
+              </span>
+            </div>
+            <div>
+              <p className="connected-card__label">{isConnected ? 'Connected' : 'Not Connected'}</p>
+              <p className="connected-card__address">{truncatedAddress}</p>
+            </div>
+          </div>
+
+          <nav className="sidebar-nav">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.label.toLowerCase()
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavClick(item.label.toLowerCase())}
+                  className={`sidebar-nav__item ${isActive ? "sidebar-nav__item--active" : ""}`}
+                >
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
+          </nav>
+        </div>
       </aside>
 
       {/* Main Content Area */}

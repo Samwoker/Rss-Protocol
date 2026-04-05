@@ -18,6 +18,7 @@ const ACTIVITIES: WithdrawalHistory[] = [
 export function WorkerDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [withdrawalStatus, setWithdrawalStatus] = useState<WithdrawalStatus>("idle")
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const handleWithdraw = () => {
     setWithdrawalStatus("signing")
@@ -38,35 +39,53 @@ export function WorkerDashboard() {
     { label: "Settings", icon: "settings" }
   ]
 
+  const handleNavClick = (tab: string) => {
+    setActiveTab(tab)
+    setIsSidebarOpen(false)
+  }
+
   return (
     <div className="dashboard-layout">
       {/* Sidebar Navigation */}
-      <aside className="dashboard-sidebar">
-        <div className="connected-card">
-          <div className="connected-card__icon">
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>wallet</span>
-          </div>
-          <div>
-            <p className="connected-card__label">Connected</p>
-            <p className="connected-card__address">0x...1234</p>
-          </div>
-        </div>
+      <aside className={`dashboard-sidebar ${isSidebarOpen ? "dashboard-sidebar--open" : ""}`}>
+        <button
+          type="button"
+          className="dashboard-sidebar__toggle"
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
+          aria-expanded={isSidebarOpen}
+          aria-controls="worker-sidebar-content"
+        >
+          <span className="material-symbols-outlined">{isSidebarOpen ? "close" : "menu"}</span>
+          <span>{isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}</span>
+        </button>
 
-        <nav className="sidebar-nav">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.label.toLowerCase()
-            return (
-              <button
-                key={item.label}
-                onClick={() => setActiveTab(item.label.toLowerCase())}
-                className={`sidebar-nav__item ${isActive ? "sidebar-nav__item--active" : ""}`}
-              >
-                <span className="material-symbols-outlined">{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            )
-          })}
-        </nav>
+        <div id="worker-sidebar-content" className="dashboard-sidebar__content">
+          <div className="connected-card">
+            <div className="connected-card__icon">
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>wallet</span>
+            </div>
+            <div>
+              <p className="connected-card__label">Connected</p>
+              <p className="connected-card__address">0x...1234</p>
+            </div>
+          </div>
+
+          <nav className="sidebar-nav">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.label.toLowerCase()
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavClick(item.label.toLowerCase())}
+                  className={`sidebar-nav__item ${isActive ? "sidebar-nav__item--active" : ""}`}
+                >
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
+          </nav>
+        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -92,7 +111,7 @@ export function WorkerDashboard() {
         </section>
 
         {/* Content Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '64px', alignItems: 'start' }}>
+        <div className="dashboard-content-grid" style={{ gridTemplateColumns: '1fr 400px', gap: '64px' }}>
           
           {/* Left Column: Withdrawal History */}
           <section>
