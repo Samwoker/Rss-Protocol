@@ -1,10 +1,12 @@
 import {
+  Contract,
   formatEther,
   getAddress,
   isAddress,
   parseEther,
   type ContractTransactionResponse,
   type TransactionReceipt,
+  type TransactionRequest,
   Interface,
 } from "ethers";
 import {
@@ -14,8 +16,11 @@ import {
   getStreamReadContract,
   getStreamReadContractAt,
   getStreamWriteContract,
+  getStreamWriteContractAt,
+  getReadProvider,
 } from "./client";
 import { streamFactoryAbi } from "./abi/factoryAbi";
+import { streamerAbi } from "./abi/streamerAbi";
 
 type ContractMethods = Record<string, (...args: unknown[]) => Promise<unknown>>;
 type StreamStatus = number;
@@ -195,7 +200,7 @@ const formatEthDisplay = (value: bigint): string => {
  * standard Error(string) selector is present. If nothing useful is found it
  * returns null.
  */
-function decodeRevertReason(errData: unknown): string | null {
+export function decodeRevertReason(errData: unknown): string | null {
   try {
     const data =
       typeof errData === "string" && errData.length > 0
@@ -238,6 +243,66 @@ function decodeRevertReason(errData: unknown): string | null {
     return decodeUtf8FromHex(payload) || null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Produce a concise, user-friendly error message for display.
+ * - Prefer explicit Error.message / reason fields if present.
+ * - Try to decode ABI-encoded revert data when available.
+ * - Fall back to a safe generic message to avoid exposing raw low-level errors.
+ */
+export function humanizeError(err: unknown): string {
+  try {
+    if (!err) return "Transaction failed.";
+    // If it's a JS Error with message, prefer that
+    if (
+      err instanceof Error &&
+      typeof err.message === "string" &&
+      err.message.length > 0
+    ) {
+      return err.message;
+    }
+
+    // Common fields where providers put readable messages
+    const rec = err as Record<string, unknown> | undefined;
+    if (rec) {
+      const reasonField = rec["reason"];
+      if (typeof reasonField === "string" && reasonField.length > 0)
+        return reasonField;
+
+      const messageField = rec["message"];
+      if (typeof messageField === "string" && messageField.length > 0) {
+        // Some providers include verbose URIs; clamp to a short string for UX
+        return messageField;
+      }
+    }
+
+    // Try decoding ABI revert data from likely locations
+    const candidateData =
+      (rec &&
+        (rec["data"] ??
+          (rec["error"] && (rec["error"] as Record<string, unknown>)["data"]) ??
+          (rec["info"] &&
+            (rec["info"] as Record<string, unknown>)["error"] &&
+            (
+              (rec["info"] as Record<string, unknown>)["error"] as Record<
+                string,
+                unknown
+              >
+            )["data"]))) ??
+      null;
+
+    const decoded = decodeRevertReason(candidateData);
+    if (decoded && decoded.length > 0) {
+      // Return a short, readable reason (strip newlines)
+      return decoded.split("\n")[0];
+    }
+
+    // Last resort: return a generic, non-technical message so UX remains friendly.
+    return "Transaction failed — the network rejected the operation.";
+  } catch {
+    return "Transaction failed.";
   }
 }
 
@@ -700,3 +765,206 @@ export function parseStreamAddressFromReceipt(
 
 export const readFactoryMethod = readStreamMethod;
 export const writeFactoryMethod = writeStreamMethod;
+
+/**
+ * Withdraw from a specific stream contract address (direct write).
+ * This avoids mutating the global "active stream" and calls withdraw on the
+ * provided contract address using the connected signer.
+ */
+export async function withdrawFromStreamAt(
+  address: string,
+): Promise<ContractTransactionResponse> {
+  const contract = await getStreamWriteContractAt(address);
+  const method = (contract as unknown as Record<string, unknown>)["withdraw"];
+  if (typeof method !== "function") {
+    throw new Error("Contract does not expose a withdraw() function.");
+  }
+  const tx = await (method as (...args: unknown[]) => Promise<unknown>)();
+  return tx as ContractTransactionResponse;
+}
+
+/**
+ * Fund (send native ETH) to a stream contract at the given address.
+ * Many stream implementations accept top-ups by sending native ETH to the
+ * contract address; this helper sends a raw transaction to the target.
+ */
+export async function fundStreamAt(
+  address: string,
+  amountWei: bigint,
+): Promise<ContractTransactionResponse> {
+  // Purpose:
+  // - Prefer calling a payable contract entrypoint if the stream contract exposes one
+  //   (e.g. `fund`, `deposit`, `topUp`, etc.) to keep semantic intent.
+  // - Fall back to sending a native transfer to the contract address when no such
+  //   payable function is available.
+  // - Surface concise, user-friendly errors using `humanizeError`.
+  const provider = await getBrowserProvider();
+  const signer = await provider.getSigner();
+
+  // Use the stream ABI to create a contract object for method discovery.
+  const contract = new Contract(address, streamerAbi, signer);
+
+  // Candidate method names commonly used by payable top-up implementations.
+  const candidateFns = [
+    "fund",
+    "deposit",
+    "topUp",
+    "topUpFunds",
+    "receiveFunds",
+    "addFunds",
+  ];
+
+  for (const fn of candidateFns) {
+    // If the contract exposes a named method we can call it directly.
+    const method = (contract as unknown as Record<string, unknown>)[fn];
+    if (typeof method === "function") {
+      try {
+        const anyContract = contract as unknown as {
+          callStatic?: Record<string, (...args: unknown[]) => Promise<unknown>>;
+        } & Record<string, unknown>;
+
+        // Try callStatic for earlier revert reasons (best-effort).
+        if (
+          anyContract.callStatic &&
+          typeof anyContract.callStatic[fn] === "function"
+        ) {
+          try {
+            // callStatic may expect the same overrides object, pass value in overrides.
+            // Some implementations require arguments; we try the no-arg payable overload.
+            await anyContract.callStatic[fn]({ value: amountWei });
+          } catch {
+            // If callStatic with no args fails, we don't block — we'll attempt the real call and surface help below.
+          }
+        }
+
+        // Execute the payable function by forwarding the value as an override.
+        const txPromise = (method as (...args: unknown[]) => Promise<unknown>)({
+          value: amountWei,
+        });
+        const tx = await txPromise;
+        return tx as ContractTransactionResponse;
+      } catch (err) {
+        // Convert low-level provider errors to a concise friendly message.
+        throw new Error(`Funding failed: ${humanizeError(err)}`);
+      }
+    }
+  }
+
+  // Fall back to sending a native ETH transfer to the contract address.
+  try {
+    const tx = await signer.sendTransaction({
+      to: address,
+      value: amountWei,
+    } as TransactionRequest);
+    return tx as ContractTransactionResponse;
+  } catch (err) {
+    // Surface an easy-to-read message rather than raw RPC dumps.
+    throw new Error(humanizeError(err));
+  }
+}
+
+/**
+ * Query recent events for a particular stream contract address.
+ * Returns parsed logs for the most relevant domain events the stream emits.
+ */
+export async function getRecentStreamEvents(
+  address: string,
+  fromBlock?: number | "earliest",
+): Promise<
+  Array<{
+    name: string;
+    args: Record<string, unknown>;
+    blockNumber: number;
+    txHash: string;
+  }>
+> {
+  const provider = getReadProvider();
+  const iface = new Interface(streamerAbi);
+
+  // Resolve fromBlock lazily (cannot await in a parameter default).
+  let resolvedFromBlock: number;
+  if (fromBlock === "earliest") {
+    resolvedFromBlock = 0;
+  } else if (typeof fromBlock === "number") {
+    resolvedFromBlock = fromBlock;
+  } else {
+    // Default: look back ~5000 blocks from current head (safe, bounded).
+    const current = await provider.getBlockNumber();
+    resolvedFromBlock = Math.max(0, current - 5000);
+  }
+
+  const filter: { address?: string; fromBlock: number; toBlock: string } = {
+    address,
+    fromBlock: resolvedFromBlock,
+    toBlock: "latest",
+  };
+
+  const raw = await provider.getLogs(filter);
+  const parsed: Array<{
+    name: string;
+    args: Record<string, unknown>;
+    blockNumber: number;
+    txHash: string;
+  }> = [];
+
+  // Provider log shape we expect for parsing (narrowed type)
+  type ProviderLog = {
+    topics: string[];
+    data: string;
+    address?: string;
+    blockNumber?: number;
+    transactionHash?: string;
+  };
+
+  for (const log of raw) {
+    try {
+      // parseLog will throw if the log doesn't match any event in the ABI.
+      // Cast the provider log to the narrowed ProviderLog shape before parsing.
+      const desc = iface.parseLog(log as unknown as ProviderLog);
+      if (!desc) continue;
+
+      // desc.args can be an array-like Result or an object - normalize it safely.
+      const args = (desc.args ?? {}) as Record<string, unknown> &
+        ArrayLike<unknown>;
+
+      parsed.push({
+        name: desc.name,
+        args: Object.assign({}, args),
+        blockNumber:
+          (log as unknown as { blockNumber?: number }).blockNumber ?? 0,
+        txHash:
+          (log as unknown as { transactionHash?: string }).transactionHash ??
+          "",
+      });
+    } catch {
+      // ignore unparsable logs
+    }
+  }
+
+  return parsed;
+}
+
+/**
+ * Detect whether a stream contract has been cancelled by looking for a
+ * `ContractCancelled` event in its recent logs (definitive) or by checking
+ * the numeric `status()` if necessary.
+ */
+export async function isStreamCancelled(address: string): Promise<boolean> {
+  // First check for event presence (definitive)
+  try {
+    const events = await getRecentStreamEvents(address);
+    if (events.some((e) => e.name === "ContractCancelled")) return true;
+  } catch {
+    // ignore and fallback to status check
+  }
+
+  try {
+    const status = await readStreamMethodAt<number>(address, "status");
+    // Based on contract README: 0 = PENDING, 1 = ACTIVE, 2 = ENDED.
+    // Some implementations may consider a cancelled stream as ENDED (2),
+    // but presence of ContractCancelled event is the most reliable signal.
+    return status === 2;
+  } catch {
+    return false;
+  }
+}

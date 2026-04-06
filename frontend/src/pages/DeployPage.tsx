@@ -20,7 +20,7 @@ export function DeployPage({ onConnectWallet }: DeployPageProps) {
   // Form State
   const [employer, setEmployer] = useState("")
   const [worker, setWorker] = useState("")
-  const [salary, setSalary] = useState("12.50")
+  const [salary, setSalary] = useState("0.0001")
   const [duration, setDuration] = useState(180)
   const [frequency, setFrequency] = useState<StreamFrequency>("Bi-weekly")
 
