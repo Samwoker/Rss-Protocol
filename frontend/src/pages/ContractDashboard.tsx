@@ -1,0 +1,422 @@
+import { useEffect, useState } from "react"
+import { formatEther } from "ethers"
+import { useAccount } from "wagmi"
+import {
+  BLOCK_EXPLORER_BASE_URL,
+  clawback,
+  getStreamContractSnapshot,
+  isStreamContractConfigured,
+} from "@/contract"
+import {
+  ClawbackModal,
+  type ClawbackStatus,
+} from "@/components/modals/ClawbackModal"
+import { startWork } from "@/contract"
+
+interface FundingHistory {
+  id: string
+  txHash: string
+  amount: string
+  date: string
+  status: "SUCCESS" | "FAILED"
+}
+
+const FUNDING_HISTORY: FundingHistory[] = [
+  { id: "1", txHash: "0x7a...4e1b", amount: "0.50 ETH", date: "Oct 24, 2023", status: "SUCCESS" },
+  { id: "2", txHash: "0x2c...9f32", amount: "1.25 ETH", date: "Oct 12, 2023", status: "SUCCESS" },
+  { id: "3", txHash: "0x88...a210", amount: "0.50 ETH", date: "Sep 28, 2023", status: "SUCCESS" },
+]
+
+interface ContractDashboardProps {
+  onConnectWallet: () => void
+}
+
+const normalizeClawbackError = (error: unknown): string => {
+  if (!error || typeof error !== "object") {
+    return "Clawback failed. Please try again."
+  }
+
+  const candidate = error as {
+    code?: string | number
+    shortMessage?: string
+    message?: string
+    info?: {
+      error?: {
+        message?: string
+      }
+    }
+  }
+
+  const message =
+    candidate.shortMessage ??
+    candidate.message ??
+    candidate.info?.error?.message ??
+    ""
+  const normalized = message.toLowerCase()
+
+  if (
+    candidate.code === 4001 ||
+    candidate.code === "ACTION_REJECTED" ||
+    normalized.includes("user rejected")
+  ) {
+    return "Clawback request was rejected in your wallet."
+  }
+
+  if (
+    candidate.code === "INSUFFICIENT_FUNDS" ||
+    normalized.includes("insufficient funds")
+  ) {
+    return "Insufficient funds to pay gas for clawback. Fund your wallet and retry."
+  }
+
+  return message || "Clawback failed. Please try again."
+}
+
+export function ContractDashboard({ onConnectWallet }: ContractDashboardProps) {
+  const [activeTab, setActiveTab] = useState("dashboard")
+  const [depositAmount, setDepositAmount] = useState("")
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [contractBalanceWei, setContractBalanceWei] = useState(0n)
+  const [contractBalance, setContractBalance] = useState("0.0000")
+  const [totalEarned, setTotalEarned] = useState("0.0000")
+  const [clawbackAvailable, setClawbackAvailable] = useState("0.0000 ETH")
+  const [clawbackStatus, setClawbackStatus] = useState<ClawbackStatus>("idle")
+  const [clawbackError, setClawbackError] = useState<string | null>(null)
+  const [clawbackTxHash, setClawbackTxHash] = useState<string | null>(null)
+  const [streamStatus, setStreamStatus] = useState<number>(0)
+  const [isStartWorkLoading, setIsStartWorkLoading] = useState(false)
+  const { address, isConnected } = useAccount()
+
+  const truncatedAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Disconnected"
+  const clawbackExplorerUrl =
+    clawbackTxHash && BLOCK_EXPLORER_BASE_URL
+      ? `${BLOCK_EXPLORER_BASE_URL.replace(/\/$/, "")}/tx/${clawbackTxHash}`
+      : null
+
+  const navItems = [
+    { label: "Dashboard", icon: "dashboard" },
+    { label: "Streams", icon: "waves" },
+    { label: "Analytics", icon: "insights" },
+    { label: "Settings", icon: "settings" }
+  ]
+
+  const handleNavClick = (tab: string) => {
+    setActiveTab(tab)
+    setIsSidebarOpen(false)
+  }
+
+  const loadContractSnapshot = async () => {
+    if (!isStreamContractConfigured()) return
+
+    try {
+      const snapshot = await getStreamContractSnapshot()
+      setContractBalanceWei(snapshot.contractBalance)
+      setContractBalance(Number(formatEther(snapshot.contractBalance)).toFixed(4))
+      setTotalEarned(Number(formatEther(snapshot.earned)).toFixed(4))
+      setClawbackAvailable(
+        `${Number(formatEther(snapshot.contractBalance)).toFixed(4)} ETH`
+      )
+      setStreamStatus(snapshot.status)
+    } catch (error) {
+      console.error("Failed to fetch contract snapshot", error)
+    }
+  }
+
+  useEffect(() => {
+    void loadContractSnapshot()
+  }, [])
+
+  const handleClawback = async () => {
+    if (!isConnected) {
+      onConnectWallet()
+      return
+    }
+
+    try {
+      if (!isStreamContractConfigured()) {
+        throw new Error(
+          "Missing contract setup. Ensure VITE_RPC_URL and VITE_STREAM_CONTRACT_ADDRESS are set in .env."
+        )
+      }
+
+      if (contractBalanceWei <= 0n) {
+        throw new Error("No reclaimable contract balance is currently available.")
+      }
+
+      setClawbackError(null)
+      setClawbackTxHash(null)
+      setClawbackStatus("signing")
+      const tx = await clawback()
+      setClawbackTxHash(tx.hash)
+      setClawbackStatus("pending")
+      await tx.wait()
+      setClawbackStatus("success")
+      await loadContractSnapshot()
+    } catch (error) {
+      console.error("Clawback transaction failed", error)
+      setClawbackError(normalizeClawbackError(error))
+      setClawbackStatus("error")
+    }
+  }
+
+  const handleStartWork = async () => {
+    if (!isConnected) {
+      onConnectWallet()
+      return
+    }
+
+    try {
+      setIsStartWorkLoading(true)
+      const tx = await startWork()
+      await tx.wait()
+      await loadContractSnapshot()
+    } catch (error) {
+      console.error("Start work failed", error)
+    } finally {
+      setIsStartWorkLoading(false)
+    }
+  }
+
+  const isClawbackBusy =
+    clawbackStatus === "signing" || clawbackStatus === "pending"
+  const isClawbackDisabled =
+    isClawbackBusy || (isConnected && contractBalanceWei <= 0n)
+
+  return (
+    <div className="dashboard-layout">
+      {/* Sidebar Navigation - Shared with Worker Dashboard */}
+      <aside className={`dashboard-sidebar ${isSidebarOpen ? "dashboard-sidebar--open" : ""}`}>
+        <button
+          type="button"
+          className="dashboard-sidebar__toggle"
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
+          aria-expanded={isSidebarOpen}
+          aria-controls="employer-sidebar-content"
+        >
+          <span className="material-symbols-outlined">{isSidebarOpen ? "close" : "menu"}</span>
+          <span>{isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}</span>
+        </button>
+
+        <div id="employer-sidebar-content" className="dashboard-sidebar__content">
+          <div className="connected-card">
+            <div className="connected-card__icon" style={{ color: isConnected ? 'var(--secondary)' : 'var(--on-surface-variant)' }}>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: isConnected ? "'FILL' 1" : "'FILL' 0" }}>
+                {isConnected ? 'account_balance_wallet' : 'no_accounts'}
+              </span>
+            </div>
+            <div>
+              <p className="connected-card__label">{isConnected ? 'Connected' : 'Not Connected'}</p>
+              <p className="connected-card__address">{truncatedAddress}</p>
+            </div>
+          </div>
+
+          <nav className="sidebar-nav">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.label.toLowerCase()
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavClick(item.label.toLowerCase())}
+                  className={`sidebar-nav__item ${isActive ? "sidebar-nav__item--active" : ""}`}
+                >
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
+          </nav>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="dashboard-main">
+        <div className="employer-header">
+           <div>
+              <h1 className="employer-header__title">Employer Dashboard</h1>
+              <p className="employer-header__subtitle">
+                Manage your smart contract liquidity, track funding history, and oversee payroll automation.
+              </p>
+           </div>
+           <div className="status-pill-active">
+              <span className="status-pill-active__dot"></span>
+              ACTIVE PROTECTION
+           </div>
+        </div>
+
+        {/* Hero Metrics Bento */}
+        <div className="employer-bento">
+           <div className="card-employer card-employer--balance">
+              <span className="card-employer__label">Contract Balance</span>
+              <div className="card-employer__balance-row">
+                 <span className="balance-value-lg">{contractBalance}</span>
+                 <span className="balance-unit-lg">ETH</span>
+              </div>
+              <div className="sub-metrics-row">
+                 <div className="sub-metric">
+                    <span className="sub-metric__label">Estimated Runway</span>
+                    <span className="sub-metric__value">42 Days</span>
+                 </div>
+                  <div className="sub-metric">
+                     <span className="sub-metric__label">Total Earned</span>
+                     <span className="sub-metric__value">{totalEarned} ETH</span>
+                  </div>
+                  <div className="sub-metric">
+                     <span className="sub-metric__label">Active Streams</span>
+                     <span className="sub-metric__value">1</span>
+                  </div>
+              </div>
+              <div className="card-employer__bg-decoration"></div>
+           </div>
+
+           <div className="card-employer card-employer--clawback">
+              <div>
+                 <div className="flex items-center gap-2 mb-4" style={{ color: 'var(--primary)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>verified_user</span>
+                    <span className="text-[11px] font-bold uppercase tracking-widest">Clawback Protection</span>
+                 </div>
+                 <p className="text-[13px] text-slate-500 leading-relaxed">
+                    Eligible to reclaim inactive funds from terminated streams. Status: <strong>{clawbackAvailable} Available</strong>
+                 </p>
+              </div>
+              <button 
+                className="btn-secondary" 
+                style={{ padding: '14px', borderRadius: '12px', fontSize: '13px', width: '100%', border: '1px solid var(--outline-variant)' }}
+                onClick={handleClawback}
+                disabled={isClawbackDisabled}
+              >
+                 <span className="material-symbols-outlined" style={{ fontSize: '18px', marginRight: '8px' }}>history_edu</span>
+                  {isClawbackBusy ? "Processing..." : "Trigger Clawback"}
+              </button>
+
+              {streamStatus === 0 && (
+                <button 
+                  className="btn-primary" 
+                  style={{ 
+                    marginTop: '12px',
+                    padding: '14px', 
+                    borderRadius: '12px', 
+                    fontSize: '13px', 
+                    width: '100%', 
+                    background: '#A855F7',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold'
+                  }}
+                  onClick={handleStartWork}
+                  disabled={isStartWorkLoading}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', marginRight: '8px' }}>play_circle</span>
+                  {isStartWorkLoading ? "Starting..." : "Start Work"}
+                </button>
+              )}
+           </div>
+        </div>
+
+        {/* Action Section: History & Deposit */}
+        <div className="employer-layout-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '48px', alignItems: 'start' }}>
+           
+           {/* Left: Funding History */}
+           <div className="history-section">
+              <h3 className="section-title-employer">Funding History</h3>
+              
+              <div className="history-header-labels" style={{ 
+                display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 100px', padding: '0 32px 12px',
+                fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#94a3b8'
+              }}>
+                 <span>Tx Hash</span>
+                 <span>Amount</span>
+                 <span>Date</span>
+                 <span style={{ textAlign: 'right' }}>Status</span>
+              </div>
+
+              <div className="history-list">
+                 {FUNDING_HISTORY.map((tx) => (
+                    <div key={tx.id} className="history-item-employer">
+                       <span className="history-item__hash">{tx.txHash}</span>
+                       <span className="history-item__amount">{tx.amount}</span>
+                       <span className="history-item__date">{tx.date}</span>
+                       <div style={{ textAlign: 'right' }}>
+                          <span className="status-badge status-badge--success" style={{ fontSize: '9px', padding: '4px 8px' }}>
+                             {tx.status}
+                          </span>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </div>
+
+           {/* Right: Deposit Panel */}
+           <div className="deposit-section">
+              <div className="deposit-panel">
+                 <h3 className="section-title-employer" style={{ fontSize: '20px', marginBottom: '32px' }}>Deposit Funds</h3>
+                 
+                 <div className="field-group">
+                    <label className="field-label">Asset to Stream</label>
+                    <div className="asset-selector">
+                       <div className="asset-icon-box">
+                          <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=024" alt="ETH" style={{ width: '18px' }} />
+                       </div>
+                       <div className="asset-info">
+                          <p className="asset-name">Ethereum</p>
+                          <p className="asset-symbol">Native Currency</p>
+                       </div>
+                       <span className="material-symbols-outlined text-slate-400">expand_more</span>
+                    </div>
+                 </div>
+
+                 <div className="field-group" style={{ marginBottom: '32px' }}>
+                    <label className="field-label">Amount (ETH)</label>
+                    <div className="amount-input-group">
+                       <input 
+                         type="text" 
+                         className="amount-input-field" 
+                         placeholder="0.00" 
+                         value={depositAmount}
+                         onChange={(e) => setDepositAmount(e.target.value)}
+                       />
+                       <div className="amount-actions">
+                          <button className="btn-amount-preset" onClick={() => setDepositAmount("0.56")}>25%</button>
+                          <button className="btn-amount-preset" onClick={() => setDepositAmount("2.25")}>MAX</button>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="tx-details-box">
+                    <div className="tx-detail-row">
+                       <span className="tx-detail-label">Network Fee</span>
+                       <span className="tx-detail-value">~0.002 ETH</span>
+                    </div>
+                    <div className="tx-detail-row">
+                       <span className="tx-detail-label">Estimated Confirmation</span>
+                       <span className="tx-detail-value">&lt; 15 Seconds</span>
+                    </div>
+                 </div>
+
+                 <button className="btn-fund">
+                    FUND CONTRACT
+                 </button>
+              </div>
+           </div>
+
+        </div>
+      </main>
+
+      <ClawbackModal
+        status={clawbackStatus}
+        onClose={() => {
+          setClawbackStatus("idle")
+          setClawbackError(null)
+        }}
+        onRetry={handleClawback}
+        amount={clawbackAvailable}
+        txHash={clawbackTxHash}
+        explorerUrl={clawbackExplorerUrl}
+        errorMessage={clawbackError}
+      />
+    </div>
+  )
+}
