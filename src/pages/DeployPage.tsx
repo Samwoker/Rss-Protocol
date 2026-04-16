@@ -1,36 +1,118 @@
 import { useState } from "react"
+import { useAccount } from "wagmi"
 import { Button } from "@/components/ui/button"
+import {
+  deploySalaryStream,
+  isFactoryConfigured,
+  parseStreamAddressFromReceipt,
+  type StreamFrequency,
+} from "@/contract"
+import { setActiveStreamAddress, BLOCK_EXPLORER_BASE_URL } from "@/contract/config"
 import { TransactionProgressModal, type TransactionStatus } from "@/components/modals/TransactionProgressModal"
 
 interface DeployPageProps {
   onConnectWallet: () => void
 }
 
-export function DeployPage({ onConnectWallet: _onConnectWallet }: DeployPageProps) {
+export function DeployPage({ onConnectWallet }: DeployPageProps) {
+  const { isConnected } = useAccount()
+
   // Form State
   const [employer, setEmployer] = useState("")
   const [worker, setWorker] = useState("")
-  const [salary, setSalary] = useState("12.50")
+  const [salary, setSalary] = useState("0.0001")
   const [duration, setDuration] = useState(180)
-  const [frequency, setFrequency] = useState("Bi-weekly")
+  const [frequency, setFrequency] = useState<StreamFrequency>("Bi-weekly")
 
   // Transaction State
   const [txStatus, setTxStatus] = useState<TransactionStatus>("idle")
+  const [deployError, setDeployError] = useState<string | null>(null)
+  const [txHash, setTxHash] = useState<string | null>(null)
+  const [deployedStreamAddress, setDeployedStreamAddress] = useState<string | null>(null)
 
-  const handleDeploy = () => {
-    // In a real app, we'd check if wallet is connected first.
-    // For now, we simulate the high-fidelity transaction flow.
-    setTxStatus("signing")
-    
-    // Step 1: Simulate "Waiting for Signature"
-    setTimeout(() => {
+  const normalizeDeployError = (error: unknown): string => {
+    if (!error || typeof error !== "object") {
+      return "Deployment failed. Please try again."
+    }
+
+    const candidate = error as {
+      code?: string | number
+      shortMessage?: string
+      message?: string
+      info?: {
+        error?: {
+          message?: string
+        }
+      }
+    }
+    const message =
+      candidate.shortMessage ??
+      candidate.message ??
+      candidate.info?.error?.message ??
+      ""
+    const normalized = message.toLowerCase()
+
+    if (
+      candidate.code === 4001 ||
+      candidate.code === "ACTION_REJECTED" ||
+      normalized.includes("user rejected")
+    ) {
+      return "Transaction was rejected in your wallet."
+    }
+
+    if (
+      candidate.code === "INSUFFICIENT_FUNDS" ||
+      normalized.includes("insufficient funds")
+    ) {
+      return "Insufficient wallet funds. Fund your Sepolia wallet with enough ETH for salary value plus gas, then retry."
+    }
+
+    return message || "Deployment failed. Please try again."
+  }
+
+  const handleDeploy = async () => {
+    if (!isConnected) {
+      onConnectWallet()
+      return
+    }
+
+    try {
+      if (!isFactoryConfigured()) {
+        throw new Error(
+          "Missing factory setup. Ensure VITE_RPC_URL and VITE_FACTORY_ADDRESS are set in .env."
+        )
+      }
+
+      setDeployError(null)
+      setTxHash(null)
+      setDeployedStreamAddress(null)
+      setTxStatus("signing")
+      const explicitEmployer = (employer || "").trim() || undefined
+
+      const tx = await deploySalaryStream({
+        employer: explicitEmployer,
+        worker,
+        salaryEth: salary,
+        durationDays: duration,
+        frequency,
+      })
+      
+      setTxHash(tx.hash)
       setTxStatus("pending")
       
-      // Step 2: Simulate "Mining Transaction"
-      setTimeout(() => {
-        setTxStatus("success")
-      }, 3500)
-    }, 2000)
+      const receipt = await tx.wait()
+      if (!receipt) throw new Error("Transaction failed to mine.")
+
+      const streamAddr = parseStreamAddressFromReceipt(receipt)
+      setDeployedStreamAddress(streamAddr)
+      setActiveStreamAddress(streamAddr)
+      
+      setTxStatus("success")
+    } catch (error) {
+      console.error("Contract transaction failed", error)
+      setDeployError(normalizeDeployError(error))
+      setTxStatus("error")
+    }
   }
 
   // Calculations
@@ -134,7 +216,7 @@ export function DeployPage({ onConnectWallet: _onConnectWallet }: DeployPageProp
                   key={freq}
                   type="button"
                   className={`frequency-tab ${frequency === freq ? "active" : ""}`}
-                  onClick={() => setFrequency(freq)}
+                  onClick={() => setFrequency(freq as StreamFrequency)}
                 >
                   {freq}
                 </button>
@@ -214,14 +296,14 @@ export function DeployPage({ onConnectWallet: _onConnectWallet }: DeployPageProp
           </div>
 
           <div className="deploy-helper-box">
-             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-             </svg>
-             <p className="helper-text">
-                Your contract will be deployed on <strong>Mainnet</strong>. Ensure you have sufficient ETH for the total salary plus gas fees.
-             </p>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <p className="helper-text">
+              Your contract will be deployed on <strong>Sepolia</strong>. Ensure your wallet has enough test ETH for salary value plus gas fees.
+            </p>
           </div>
         </div>
       </aside>
@@ -230,10 +312,18 @@ export function DeployPage({ onConnectWallet: _onConnectWallet }: DeployPageProp
         status={txStatus}
         onClose={() => {
           setTxStatus("idle")
-          window.location.hash = "#"
-          window.location.reload() // Refresh to landing as dashboard simulation
+          setDeployError(null)
+          if (deployedStreamAddress) {
+            window.location.hash = "#dashboard"
+          } else {
+            window.location.hash = "#"
+          }
         }}
         onRetry={handleDeploy}
+        errorMessage={deployError}
+        txHash={txHash}
+        streamAddress={deployedStreamAddress}
+        explorerUrl={BLOCK_EXPLORER_BASE_URL}
       />
     </div>
   )

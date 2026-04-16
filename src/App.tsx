@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useAccount } from "wagmi"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import {
@@ -12,37 +13,100 @@ import { ExplorerPage } from "@/pages/ExplorerPage"
 import { ContractDashboard } from "@/pages/ContractDashboard"
 import { WorkerDashboard } from "@/pages/WorkerDashboard"
 import { ConnectWalletModal } from "@/components/modals/ConnectWalletModal"
+import {
+  canAccessView,
+  getAccessDeniedMessage,
+  getFallbackView,
+  resolveRole,
+} from "@/contract"
 import { Web3Provider } from "./providers/Web3Provider"
 
 export type View = "landing" | "deploy" | "explorer" | "dashboard" | "worker-dashboard"
 
 export default function App() {
+  return (
+    <Web3Provider>
+      <AppContent />
+    </Web3Provider>
+  )
+}
+
+const parseHashToView = (): View => {
+  const hash = window.location.hash.replace("#", "") as View
+  if (hash === "deploy") return "deploy"
+  if (hash === "explorer") return "explorer"
+  if (hash === "dashboard") return "dashboard"
+  if (hash === "worker-dashboard") return "worker-dashboard"
+  return "landing"
+}
+
+const viewToHash = (view: View): string => (view === "landing" ? "" : view)
+
+function AppContent() {
+  const { address } = useAccount()
+  const role = resolveRole(address)
+
   const [view, setView] = useState<View>("landing")
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false)
+  const [guardNotice, setGuardNotice] = useState("")
+
+  const resolveAuthorizedView = (requestedView: View): View => {
+    if (canAccessView(role, requestedView)) return requestedView
+    return getFallbackView(role)
+  }
 
   // Handle browser back/forward buttons via hash
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash.replace("#", "") as View
-      if (hash === "deploy") setView("deploy")
-      else if (hash === "explorer") setView("explorer")
-      else if (hash === "dashboard") setView("dashboard")
-      else if (hash === "worker-dashboard") setView("worker-dashboard")
-      else setView("landing")
-    }
-    window.addEventListener("popstate", handleHash)
-    handleHash() // Initial check
-    return () => window.removeEventListener("popstate", handleHash)
-  }, [])
+      const requestedView = parseHashToView()
+      const authorizedView = resolveAuthorizedView(requestedView)
 
-  const navigate = (v: View) => {
-    window.location.hash = v === "landing" ? "" : v
-    setView(v)
+      if (authorizedView !== requestedView) {
+        setGuardNotice(getAccessDeniedMessage(role, requestedView))
+        const expectedHash = viewToHash(authorizedView)
+        const currentHash = window.location.hash.replace("#", "")
+        if (currentHash !== expectedHash) {
+          window.location.hash = expectedHash
+        }
+      }
+
+      setView(authorizedView)
+    }
+
+    window.addEventListener("hashchange", handleHash)
+    window.addEventListener("popstate", handleHash)
+    handleHash()
+
+    return () => {
+      window.removeEventListener("hashchange", handleHash)
+      window.removeEventListener("popstate", handleHash)
+    }
+  }, [role])
+
+  useEffect(() => {
+    if (!guardNotice) return
+
+    const timeout = window.setTimeout(() => {
+      setGuardNotice("")
+    }, 3500)
+
+    return () => window.clearTimeout(timeout)
+  }, [guardNotice])
+
+  const navigate = (requestedView: View) => {
+    const authorizedView = resolveAuthorizedView(requestedView)
+
+    if (authorizedView !== requestedView) {
+      setGuardNotice(getAccessDeniedMessage(role, requestedView))
+    }
+
+    window.location.hash = viewToHash(authorizedView)
+    setView(authorizedView)
     window.scrollTo(0, 0)
   }
 
   return (
-    <Web3Provider>
+    <>
       <Navbar
         currentView={view}
         onNavigate={navigate}
@@ -50,6 +114,12 @@ export default function App() {
       />
 
       <main className="landing-main">
+        {guardNotice && (
+          <div className="route-guard-banner" role="status">
+            {guardNotice}
+          </div>
+        )}
+
         {view === "landing" ? (
           <>
             <HeroSection
@@ -65,9 +135,9 @@ export default function App() {
         ) : view === "explorer" ? (
           <ExplorerPage />
         ) : view === "worker-dashboard" ? (
-          <WorkerDashboard />
+          <WorkerDashboard onConnectWallet={() => setIsConnectModalOpen(true)} />
         ) : (
-          <ContractDashboard />
+          <ContractDashboard onConnectWallet={() => setIsConnectModalOpen(true)} />
         )}
       </main>
 
@@ -77,6 +147,6 @@ export default function App() {
         isOpen={isConnectModalOpen}
         onClose={() => setIsConnectModalOpen(false)}
       />
-    </Web3Provider>
+    </>
   )
 }

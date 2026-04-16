@@ -1,42 +1,74 @@
-import { useAccount, useBalance, useDisconnect } from "wagmi"
-import { Button } from "@/components/ui/button"
-import type { View } from "@/App"
+import { useEffect, useState } from "react";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
+import { Button } from "@/components/ui/button";
+import { canAccessView, isProtectedView, resolveRole } from "@/contract";
+import type { View } from "@/App";
 
 interface NavbarProps {
-  currentView: View
-  onNavigate: (v: View) => void
-  onConnectWallet: () => void
+  currentView: View;
+  onNavigate: (v: View) => void;
+  onConnectWallet: () => void;
 }
 
 const NAV_LINKS = [
+  { label: "Home", view: "landing" as View },
   { label: "Dashboard", view: "dashboard" as View },
   { label: "Worker", view: "worker-dashboard" as View },
-  { label: "Explorer", view: "explorer" as View }, 
+  { label: "Explorer", view: "explorer" as View },
   { label: "Deploy", view: "deploy" as View },
-  { label: "Docs", view: "landing" as View },
-] as const
+] as const;
 
-export function Navbar({ currentView, onNavigate, onConnectWallet }: NavbarProps) {
-  const { address, isConnected } = useAccount()
-  const { data: balanceData } = useBalance({ address })
-  const { disconnect } = useDisconnect()
+export function Navbar({
+  currentView,
+  onNavigate,
+  onConnectWallet,
+}: NavbarProps) {
+  const { address, isConnected } = useAccount();
+  const { data: balanceData } = useBalance({ address });
+  const { disconnect } = useDisconnect();
+  const role = resolveRole(address);
+  const [isCopied, setIsCopied] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const truncatedAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : ""
-  const balanceValue = balanceData ? `${Number(balanceData.formatted).toFixed(3)} ${balanceData.symbol}` : "0 ETH"
+  const truncatedAddress = address
+    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+    : "";
+  const balanceValue = balanceData
+    ? `${Number(balanceData.formatted).toFixed(3)} ${balanceData.symbol}`
+    : "0 ETH";
+  const visibleLinks = NAV_LINKS.filter(
+    (link) => !isProtectedView(link.view) || canAccessView(role, link.view),
+  );
+
+  useEffect(() => {
+    if (!isCopied) return;
+
+    const timeout = window.setTimeout(() => setIsCopied(false), 1400);
+    return () => window.clearTimeout(timeout);
+  }, [isCopied]);
+
+  const handleCopyAddress = async () => {
+    if (!address) return;
+    try {
+      await navigator.clipboard.writeText(address);
+      setIsCopied(true);
+    } catch (error) {
+      console.error("Failed to copy address", error);
+    }
+  };
 
   return (
     <nav className="navbar">
       <div className="navbar__inner">
-        <div
-          className="navbar__brand"
-          onClick={() => onNavigate("landing")}
-        >
+        <div className="navbar__brand" onClick={() => onNavigate("landing")}>
           SalaryStreamer
         </div>
 
         <div className="navbar__links">
-          {NAV_LINKS.map((link) => {
-            const isActive = currentView === link.view || (currentView === "landing" && link.label === "Dashboard")
+          {visibleLinks.map((link) => {
+            const isActive =
+              currentView === link.view ||
+              (currentView === "landing" && link.label === "Dashboard");
             return (
               <button
                 key={link.label}
@@ -44,9 +76,8 @@ export function Navbar({ currentView, onNavigate, onConnectWallet }: NavbarProps
                 className={`navbar__link ${isActive ? "navbar__link--active" : ""}`}
               >
                 {link.label}
-                {isActive && <div className="navbar__link-indicator" />}
               </button>
-            )
+            );
           })}
         </div>
 
@@ -56,12 +87,33 @@ export function Navbar({ currentView, onNavigate, onConnectWallet }: NavbarProps
               <div className="navbar__wallet-chip">
                 <div className="wallet-chip__section wallet-chip__section--end">
                   <span className="wallet-chip__label">Balance</span>
-                  <span className="wallet-chip__value wallet-chip__value--secondary">{balanceValue}</span>
+                  <span className="wallet-chip__value wallet-chip__value--secondary">
+                    {balanceValue}
+                  </span>
                 </div>
                 <div className="wallet-chip__divider" />
                 <div className="wallet-chip__section">
                   <span className="wallet-chip__label">Address</span>
-                  <span className="wallet-chip__value wallet-chip__value--primary">{truncatedAddress}</span>
+                  <span className="wallet-chip__value-row">
+                    <span className="wallet-chip__value wallet-chip__value--primary">
+                      {truncatedAddress}
+                    </span>
+                    <button
+                      type="button"
+                      className="wallet-chip__copy-btn"
+                      aria-label="Copy wallet address"
+                      title={isCopied ? "Copied" : "Copy address"}
+                      onClick={handleCopyAddress}
+                    >
+                      {isCopied ? (
+                        <span className="material-symbols-outlined">check</span>
+                      ) : (
+                        <span className="material-symbols-outlined">
+                          content_copy
+                        </span>
+                      )}
+                    </button>
+                  </span>
                 </div>
               </div>
               <Button
@@ -81,7 +133,7 @@ export function Navbar({ currentView, onNavigate, onConnectWallet }: NavbarProps
               <Button
                 onClick={onConnectWallet}
                 className="btn-primary"
-                style={{ padding: '12px 32px', borderRadius: '9999px' }}
+                style={{ padding: "12px 32px", borderRadius: "9999px" }}
               >
                 Connect Wallet
               </Button>
@@ -90,5 +142,5 @@ export function Navbar({ currentView, onNavigate, onConnectWallet }: NavbarProps
         </div>
       </div>
     </nav>
-  )
+  );
 }

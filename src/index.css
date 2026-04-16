@@ -42,8 +42,9 @@
   --gradient-soul: linear-gradient(135deg, #983784 0%, #006970 100%);
 
   /* Typography */
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-headline: "Inter", "Outfit", sans-serif; /* Adjusted for employer mockup consistency */
+  /* Use JetBrains Mono across the site as requested */
+  --font-body: "JetBrains Mono", ui-monospace, monospace;
+  --font-headline: "JetBrains Mono", ui-monospace, monospace; /* Adjusted for employer mockup consistency */
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   /* Shadows */
@@ -961,6 +962,33 @@ button {
   line-height: 1;
 }
 
+.wallet-chip__value-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wallet-chip__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--on-surface-variant);
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.wallet-chip__copy-btn .material-symbols-outlined {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.wallet-chip__copy-btn:hover {
+  color: var(--primary);
+  background: rgba(152, 55, 132, 0.08);
+}
+
 .wallet-chip__value--secondary {
   color: var(--secondary);
 }
@@ -1360,6 +1388,17 @@ button {
   max-width: 1536px;
   margin: 0 auto;
   width: 100%;
+}
+
+.route-guard-banner {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(152, 55, 132, 0.18);
+  background: rgba(152, 55, 132, 0.08);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 @media (min-width: 768px) {

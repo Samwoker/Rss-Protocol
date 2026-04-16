@@ -7,10 +7,26 @@ interface WithdrawModalProps {
   onClose: () => void
   onRetry?: () => void
   amount?: string
+  txHash?: string | null
+  explorerUrl?: string | null
+  errorMessage?: string | null
 }
 
-export function WithdrawModal({ status, onClose, onRetry, amount = "0.25 ETH" }: WithdrawModalProps) {
+export function WithdrawModal({
+  status,
+  onClose,
+  onRetry,
+  amount = "0.25 ETH",
+  txHash,
+  explorerUrl,
+  errorMessage,
+}: WithdrawModalProps) {
   if (status === "idle") return null
+
+  const shortHash =
+    txHash && txHash.length > 12
+      ? `${txHash.slice(0, 6)}...${txHash.slice(-4)}`
+      : txHash ?? "Awaiting signature"
 
   const renderContent = () => {
     switch (status) {
@@ -44,7 +60,7 @@ export function WithdrawModal({ status, onClose, onRetry, amount = "0.25 ETH" }:
             </p>
             <div className="tx-hash-box font-mono">
                <span className="text-xs opacity-40 mr-2 uppercase">Hash</span>
-               <span className="text-secondary font-bold">0x4b...e9c3</span>
+               <span className="text-secondary font-bold">{shortHash}</span>
             </div>
           </div>
         )
@@ -64,7 +80,16 @@ export function WithdrawModal({ status, onClose, onRetry, amount = "0.25 ETH" }:
                <Button variant="primary" size="lg" className="w-full btn-primary" style={{ borderRadius: '16px' }} onClick={onClose}>
                   BACK TO DASHBOARD
                </Button>
-               <a href="#" className="tx-link-secondary mt-4 block text-sm font-bold text-slate-400 hover:text-slate-600">VIEW ON ETHERSCAN</a>
+               {explorerUrl ? (
+                 <a
+                   href={explorerUrl}
+                   target="_blank"
+                   rel="noreferrer"
+                   className="tx-link-secondary mt-4 block text-sm font-bold text-slate-400 hover:text-slate-600"
+                 >
+                   VIEW ON ETHERSCAN
+                 </a>
+               ) : null}
             </div>
           </div>
         )
@@ -78,7 +103,8 @@ export function WithdrawModal({ status, onClose, onRetry, amount = "0.25 ETH" }:
             </div>
             <h2 className="tx-title">Withdrawal Failed</h2>
             <p className="tx-description text-on-surface-variant/80">
-              Something went wrong during the transfer. This could be due to network congestion or a rejected signature.
+              {errorMessage ??
+                "Something went wrong during the transfer. This could be due to network congestion or a rejected signature."}
             </p>
             <div className="tx-actions">
                {onRetry && (
